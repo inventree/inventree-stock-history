@@ -1,14 +1,13 @@
-"""API serializers for the StockHistory plugin.
-
-In practice, you would define your custom serializers here.
-
-Ref: https://www.django-rest-framework.org/api-guide/serializers/
-"""
+"""API serializers for the StockHistory plugin."""
 
 from rest_framework import serializers
 
+import InvenTree.serializers
 
-class ExampleSerializer(serializers.Serializer):
+from .models import StockHistoryEntry
+
+
+class StockHistoryEntrySerializer(InvenTree.serializers.InvenTreeModelSerializer):
     """Example serializer for the StockHistory plugin.
 
     This simply demonstrates how to create a serializer,
@@ -18,26 +17,24 @@ class ExampleSerializer(serializers.Serializer):
     class Meta:
         """Meta options for this serializer."""
 
+        model = StockHistoryEntry
+
         fields = [
-            "random_text",
-            "part_count",
-            "today",
+            "pk",
+            "part",
+            "date",
+            "item_count",
+            "quantity",
+            "cost_min",
+            "cost_min_currency",
+            "cost_max",
+            "cost_max_currency",
         ]
 
-    random_text = serializers.CharField(
-        max_length=100,
-        required=True,
-        label="Random Text",
-        help_text="A text field containing randomly generated data.",
-    )
+    quantity = serializers.FloatField()
 
-    part_count = serializers.IntegerField(
-        label="Number of Parts",
-        help_text="Total number of parts in the InvenTree database.",
-    )
+    cost_min = InvenTree.serializers.InvenTreeMoneySerializer(allow_null=True)
+    cost_min_currency = InvenTree.serializers.InvenTreeCurrencySerializer()
 
-    today = serializers.DateField(
-        required=False,
-        label="Today",
-        help_text="The current date.",
-    )
+    cost_max = InvenTree.serializers.InvenTreeMoneySerializer(allow_null=True)
+    cost_max_currency = InvenTree.serializers.InvenTreeCurrencySerializer()
