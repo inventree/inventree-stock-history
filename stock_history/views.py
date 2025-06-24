@@ -1,48 +1,51 @@
-"""API views for the StockHistory plugin.
+"""API views for the StockHistory plugin."""
 
-In practice, you would define your custom views here.
+from django.utils.translation import gettext_lazy as _
 
-Ref: https://www.django-rest-framework.org/api-guide/views/
-"""
-
-from datetime import date
-import random
-import string
+from django_filters import rest_framework as rest_filters
 
 from rest_framework import permissions
-from rest_framework.response import Response
-from rest_framework.views import APIView
 
-from .serializers import ExampleSerializer
+from InvenTree.filters import ORDER_FILTER
+from InvenTree.mixins import ListAPI
+
+from .models import StockHistoryEntry
+from .serializers import StockHistoryEntrySerializer
 
 
-class ExampleView(APIView):
+class StockHistoryFilter(rest_filters.FilterSet):
+    """API filterset class for the StockHistory list API."""
+
+    class Meta:
+        """Metaclass options."""
+
+        model = StockHistoryEntry
+        fields = ["part"]
+
+    # Filter by date range
+    date_before = rest_filters.DateFilter(
+        field_name="date", lookup_expr="lt", label=_("Date Before")
+    )
+    date_after = rest_filters.DateFilter(
+        field_name="date", lookup_expr="gt", label=_("Date After")
+    )
+
+
+class StockHistoryList(ListAPI):
     """Example API view for the StockHistory plugin.
 
     This view returns some very simple example data,
     but the concept can be extended to include more complex logic.
     """
 
-    # You can control which users can access this view using DRF permissions
+    # TODO: Custom permission check
     permission_classes = [permissions.IsAuthenticated]
 
-    # Control how the response is formatted
-    serializer_class = ExampleSerializer
+    queryset = StockHistoryEntry.objects.all()
+    serializer_class = StockHistoryEntrySerializer
+    filterset_class = StockHistoryFilter
 
-    def get(self, request, *args, **kwargs):
-        """Override the GET method to return example data."""
-
-        from part.models import Part
-
-        response_serializer = self.serializer_class(
-            data={
-                "random_text": "".join(random.choices(string.ascii_letters, k=50)),
-                "part_count": Part.objects.count(),
-                "today": date.today(),
-            }
-        )
-
-        # Serializer must be validated before it can be returned to the client
-        response_serializer.is_valid(raise_exception=True)
-
-        return Response(response_serializer.data, status=200)
+    # TODO: Filtering by field
+    filter_backends = ORDER_FILTER
+    ordering_fields = ["date", "quantity"]
+    ordering = ["date"]

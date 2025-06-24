@@ -21,6 +21,7 @@ class StockHistoryEntry(models.Model):
     class Meta:
         """Meta options for the model."""
 
+        app_label = "stock_history"
         verbose_name = _("Stock History Entry")
         verbose_name_plural = _("Stock History Entries")
 

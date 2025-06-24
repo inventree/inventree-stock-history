@@ -77,11 +77,11 @@ class StockHistory(
     def setup_urls(self):
         """Configure custom URL endpoints for this plugin."""
         from django.urls import path
-        from .views import ExampleView
+        from .views import StockHistoryList
 
         return [
             # Provide path to a simple custom view - replace this with your own views
-            path("example/", ExampleView.as_view(), name="example-view"),
+            path("history/", StockHistoryList.as_view(), name="stock-history-list"),
         ]
 
     # User interface elements (from UserInterfaceMixin)
