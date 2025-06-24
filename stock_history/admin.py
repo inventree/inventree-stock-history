@@ -2,15 +2,21 @@
 
 from django.contrib import admin
 
-from .models import ExampleModel
+from .models import StockHistoryEntry
 
 
-@admin.register(ExampleModel)
-class ExampleModelAdmin(admin.ModelAdmin):
-    """Admin interface for the ExampleModel."""
+@admin.register(StockHistoryEntry)
+class StockHistoryEntryAdmin(admin.ModelAdmin):
+    """Admin interface for the StockHistoryEntry model."""
+
+    autocomplete_fields = [
+        "part",
+    ]
 
     list_display = (
-        "user",
-        "counter",
+        "part",
+        "date",
+        "quantity",
+        "cost_min",
+        "cost_max",
     )
-    list_filter = ("user",)
