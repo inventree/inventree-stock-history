@@ -101,7 +101,9 @@ class StockHistory(
                 "title": _("Stock History"),
                 "description": _("Stock history"),
                 "icon": "ti:chart-line:outline",
-                "source": self.plugin_static_file("Panel.js:renderStockHistoryPanel"),
+                "source": self.plugin_static_file(
+                    "StockHistoryPanel.js:renderStockHistoryPanel"
+                ),
                 "context": {
                     # Provide additional context data to the panel
                     "settings": self.get_settings_dict(),
