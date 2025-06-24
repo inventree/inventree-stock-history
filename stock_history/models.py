@@ -1,37 +1,66 @@
-"""Custom model definitions for the StockHistory} plugin.
+"""Model definitions for the StockHistory plugin."""
 
-This file is where you can define any custom database models.
-
-- Any models defined here will require database migrations to be created.
-- Don't forget to register your models in the admin interface if needed!
-"""
-
-from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+import InvenTree.fields
+import part.models as part_models
 
-class ExampleModel(models.Model):
-    """An example model for the StockHistory plugin."""
+
+class StockHistoryEntry(models.Model):
+    """Model representing a historical stock entry for a particular Part.
+
+    This is a representative count of available stock:
+    - Performed on a given date
+    - Records quantity of part in stock (across multiple stock items)
+    - Records estimated value of "stock on hand"
+    - Records user information
+    """
 
     class Meta:
         """Meta options for the model."""
 
-        verbose_name = _("Example Model")
-        verbose_name_plural = _("Example Models")
+        verbose_name = _("Stock History Entry")
+        verbose_name_plural = _("Stock History Entries")
 
-    user = models.OneToOneField(
-        User,
-        unique=True,
-        null=False,
-        blank=False,
+    part = models.ForeignKey(
+        part_models.Part,
         on_delete=models.CASCADE,
-        related_name="example_model",
-        help_text=_("The user associated with this example model"),
+        related_name="stock_history_entries",
+        verbose_name=_("Part"),
     )
 
-    counter = models.IntegerField(
-        default=0,
-        verbose_name=_("Counter"),
-        help_text=_("A simple counter for the example model"),
+    item_count = models.IntegerField(
+        default=1,
+        verbose_name=_("Item Count"),
+        help_text=_("Number of individual stock items"),
+    )
+
+    quantity = models.DecimalField(
+        max_digits=19,
+        decimal_places=5,
+        validators=[MinValueValidator(0)],
+        verbose_name=_("Quantity"),
+        help_text=_("Total available stock quantity"),
+    )
+
+    date = models.DateField(
+        verbose_name=_("Date"),
+        help_text=_("Date of stock count"),
+        auto_now_add=True,
+    )
+
+    cost_min = InvenTree.fields.InvenTreeModelMoneyField(
+        null=True,
+        blank=True,
+        verbose_name=_("Minimum Stock Cost"),
+        help_text=_("Estimated minimum cost of stock on hand"),
+    )
+
+    cost_max = InvenTree.fields.InvenTreeModelMoneyField(
+        null=True,
+        blank=True,
+        verbose_name=_("Maximum Stock Cost"),
+        help_text=_("Estimated maximum cost of stock on hand"),
     )
