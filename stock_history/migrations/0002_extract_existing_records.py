@@ -83,7 +83,8 @@ def delete_entries(apps, schema_editor):
     n = StockHistoryEntry.objects.count()
 
     if n > 0:
-        StockHistoryEntry.objects.all().delete()
+        queryset = StockHistoryEntry.objects.all()
+        queryset._raw_delete(queryset.db)
         print(f"Deleted {n} StockHistoryEntry objects")
 
 
