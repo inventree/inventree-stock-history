@@ -9,7 +9,7 @@ import {
 import { Alert, Button, Group, Stack, Text, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useQuery } from '@tanstack/react-query';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 /**
  * Render a custom panel with the provided context.
@@ -20,6 +20,36 @@ function StockHistoryPanel({ context }: { context: InvenTreePluginContext }) {
   const partId = useMemo(() => {
     return context.model == ModelType.part ? context.id || null : null;
   }, [context.model, context.id]);
+
+  const STOCKTAKE_URL: string = '/plugin/stock-history/history/';
+
+  const historyQuery = useQuery(
+    {
+      enabled: !!partId,
+      queryKey: ['stock-history', partId],
+      refetchOnMount: true,
+      refetchOnWindowFocus: false,
+      queryFn: async () => {
+        return context.api
+          ?.get(STOCKTAKE_URL, {
+            params: {
+              part: partId
+              // TODO: Date range
+            }
+          })
+          .then((response: any) => response.data)
+          .catch(() => {
+            return [];
+          });
+      }
+    },
+    context.queryClient
+  );
+
+  useEffect(() => {
+    console.log('history data:');
+    console.log(historyQuery.data);
+  }, [historyQuery.data]);
 
   // Hello world - counter example
   const [counter, setCounter] = useState<number>(0);
