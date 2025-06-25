@@ -49,7 +49,6 @@ class Migration(migrations.Migration):
                 (
                     "date",
                     models.DateField(
-                        auto_now_add=True,
                         help_text="Date of stock count",
                         verbose_name="Date",
                     ),
