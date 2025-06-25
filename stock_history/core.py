@@ -1,5 +1,6 @@
 """Record historical stock levels"""
 
+from django.core.validators import MinValueValidator
 from django.utils.translation import gettext_lazy as _
 
 from plugin import InvenTreePlugin
@@ -51,13 +52,41 @@ class StockHistory(
     # Plugin settings (from SettingsMixin)
     # Ref: https://docs.inventree.org/en/latest/plugins/mixins/settings/
     SETTINGS = {
-        # Define your plugin settings here...
-        "CUSTOM_VALUE": {
-            "name": "Custom Value",
-            "description": "A custom value",
-            "validator": int,
-            "default": 42,
-        }
+        "USER_GROUP": {
+            "name": _("Allowed Group"),
+            "description": _("The user group that is allowed to view stock history"),
+            "model": "auth.group",
+        },
+        "EXCLUDE_EXTERNAL_LOCATIONS": {
+            "name": _("Exclude External Locations"),
+            "description": _(
+                "Exclude stock items in external locations from stocktake calculations"
+            ),
+            "validator": bool,
+            "default": True,
+        },
+        "STOCK_COUNT_PERIOD": {
+            "name": _("Stock Count Period"),
+            "description": _("How often to record stock history levels"),
+            "validator": [int, MinValueValidator(1)],
+            "default": 7,
+            "units": _("days"),
+        },
+        "IGNORE_INACTIVE_PARTS": {
+            "name": _("Ignore Inactive Parts"),
+            "description": _(
+                "Ignore stock history for parts that are marked as inactive"
+            ),
+            "validator": bool,
+            "default": True,
+        },
+        "STOCK_DELETE_PERIOD": {
+            "name": _("Stock Delete Period"),
+            "description": _("How long to keep stock history records before deletion"),
+            "validator": [int, MinValueValidator(1)],
+            "default": 365,
+            "units": _("days"),
+        },
     }
 
     # Respond to InvenTree events (from EventMixin)
