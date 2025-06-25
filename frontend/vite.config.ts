@@ -29,9 +29,7 @@ export default defineConfig({
     rollupOptions: {
       preserveEntrySignatures: "exports-only",
       input: [
-        './src/Panel.tsx',
-        
-        
+        './src/StockHistoryPanel.tsx',        
       ],
       output: {
         dir: '../stock_history/static',

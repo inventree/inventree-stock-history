@@ -49,7 +49,6 @@ class StockHistoryEntry(models.Model):
     date = models.DateField(
         verbose_name=_("Date"),
         help_text=_("Date of stock count"),
-        auto_now_add=True,
     )
 
     cost_min = InvenTree.fields.InvenTreeModelMoneyField(

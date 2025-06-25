@@ -1,5 +1,7 @@
 """Record historical stock levels"""
 
+from django.utils.translation import gettext_lazy as _
+
 from plugin import InvenTreePlugin
 
 from plugin.mixins import (
@@ -38,8 +40,7 @@ class StockHistory(
     LICENSE = "MIT"
 
     # Optionally specify supported InvenTree versions
-    # MIN_VERSION = '0.18.0'
-    # MAX_VERSION = '2.0.0'
+    MIN_VERSION = "0.18.0"
 
     # Scheduled tasks (from ScheduleMixin)
     # Ref: https://docs.inventree.org/en/latest/plugins/mixins/schedule/
@@ -96,15 +97,16 @@ class StockHistory(
         # Only display this panel for the 'part' target
         if context.get("target_model") == "part":
             panels.append({
-                "key": "stock-history-panel",
-                "title": "Stock History",
-                "description": "Custom panel description",
-                "icon": "ti:mood-smile:outline",
-                "source": self.plugin_static_file("Panel.js:renderStockHistoryPanel"),
+                "key": "stock-history",
+                "title": _("Stock History"),
+                "description": _("Stock history"),
+                "icon": "ti:chart-line:outline",
+                "source": self.plugin_static_file(
+                    "StockHistoryPanel.js:renderStockHistoryPanel"
+                ),
                 "context": {
                     # Provide additional context data to the panel
                     "settings": self.get_settings_dict(),
-                    "foo": "bar",
                 },
             })
 
