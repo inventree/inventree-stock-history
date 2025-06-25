@@ -1,15 +1,14 @@
 // Import for type checking
 import {
-  ApiEndpoints,
-  apiUrl,
   checkPluginVersion,
   type InvenTreePluginContext,
   ModelType
 } from '@inventreedb/ui';
-import { Alert, Button, Group, Stack, Text, Title } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
+import { Group, Stack } from '@mantine/core';
+import { type DateValue, MonthPickerInput } from '@mantine/dates';
 import { useQuery } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import dayjs from 'dayjs';
+import { useEffect, useMemo, useState } from 'react';
 
 /**
  * Render a custom panel with the provided context.
@@ -23,18 +22,29 @@ function StockHistoryPanel({ context }: { context: InvenTreePluginContext }) {
 
   const STOCKTAKE_URL: string = '/plugin/stock-history/history/';
 
+  // Starting date for the order history
+  const [startDate, setStartDate] = useState<Date>(
+    dayjs().subtract(1, 'year').toDate()
+  );
+
+  // Ending date for the order history
+  const [endDate, setEndDate] = useState<Date>(
+    dayjs().add(1, 'month').toDate()
+  );
+
   const historyQuery = useQuery(
     {
-      enabled: !!partId,
-      queryKey: ['stock-history', partId],
+      enabled: !!partId && !!startDate && !!endDate,
+      queryKey: ['stock-history', partId, startDate, endDate],
       refetchOnMount: true,
       refetchOnWindowFocus: false,
       queryFn: async () => {
         return context.api
           ?.get(STOCKTAKE_URL, {
             params: {
-              part: partId
-              // TODO: Date range
+              part: partId,
+              date_after: dayjs(startDate).format('YYYY-MM-DD'),
+              date_before: dayjs(endDate).format('YYYY-MM-DD')
             }
           })
           .then((response: any) => response.data)
@@ -47,120 +57,34 @@ function StockHistoryPanel({ context }: { context: InvenTreePluginContext }) {
   );
 
   useEffect(() => {
-    console.log('history data:');
     console.log(historyQuery.data);
   }, [historyQuery.data]);
 
-  // Hello world - counter example
-  const [counter, setCounter] = useState<number>(0);
-
-  // Extract context information
-  const instance: string = useMemo(() => {
-    const data = context?.instance ?? {};
-    return JSON.stringify(data, null, 2);
-  }, [context.instance]);
-
-  // Fetch API data from the example API endpoint
-  // It will re-fetch when the partId changes
-  const apiQuery = useQuery(
-    {
-      queryKey: ['apiData', partId],
-      queryFn: async () => {
-        const url = `/plugin/stock-history/example/`;
-
-        return context.api
-          .get(url)
-          .then((response) => response.data)
-          .catch(() => {});
-      }
-    },
-    context.queryClient
-  );
-
-  // Custom form to edit the selected part
-  const editPartForm = context.forms.edit({
-    url: apiUrl(ApiEndpoints.part_list, partId),
-    title: 'Edit Part',
-    preFormContent: (
-      <Alert title='Custom Plugin Form' color='blue'>
-        This is a custom form launched from within a plugin!
-      </Alert>
-    ),
-    fields: {
-      name: {},
-      description: {},
-      category: {}
-    },
-    successMessage: null,
-    onFormSuccess: () => {
-      notifications.show({
-        title: 'Success',
-        message: 'Part updated successfully!',
-        color: 'green'
-      });
-    }
-  });
-
-  // Custom callback function example
-  const openForm = useCallback(() => {
-    editPartForm?.open();
-  }, [editPartForm]);
-
-  // Navigation functionality example
-  const gotoDashboard = useCallback(() => {
-    context.navigate('/home');
-  }, [context]);
-
   return (
     <>
-      {editPartForm.modal}
       <Stack gap='xs'>
-        <Title c={context.theme.primaryColor} order={3}>
-          Stock History
-        </Title>
-        <Text>This is a custom panel for the StockHistory plugin.</Text>
-        <Group justify='apart' wrap='nowrap' gap='sm'>
-          <Button color='blue' onClick={gotoDashboard}>
-            Go to Dashboard
-          </Button>
-          {partId && (
-            <Button color='green' onClick={openForm}>
-              Edit Part
-            </Button>
-          )}
-          <Button onClick={() => setCounter(counter + 1)}>
-            Increment Counter
-          </Button>
-          <Text size='xl'>Counter: {counter}</Text>
+        <Group gap='xs' justify='space-apart' grow>
+          <Group gap='xs'>
+            <MonthPickerInput
+              value={startDate}
+              label={`Start Date`}
+              onChange={(value: DateValue) => {
+                if (value && value < endDate) {
+                  setStartDate(value);
+                }
+              }}
+            />
+            <MonthPickerInput
+              value={endDate}
+              label={`End Date`}
+              onChange={(value: DateValue) => {
+                if (value && value > startDate) {
+                  setEndDate(value);
+                }
+              }}
+            />
+          </Group>
         </Group>
-        {instance ? (
-          <Alert title='Instance Data' color='blue'>
-            {instance}
-          </Alert>
-        ) : (
-          <Alert title='No Instance' color='yellow'>
-            No instance data available
-          </Alert>
-        )}
-        {apiQuery.isFetched && apiQuery.data && (
-          <Alert color='green' title='API Query Data'>
-            {apiQuery.isFetching || apiQuery.isLoading ? (
-              <Text>Loading...</Text>
-            ) : (
-              <Stack gap='xs'>
-                <Text>Part Count: {apiQuery.data.part_count}</Text>
-                <Text>Today: {apiQuery.data.today}</Text>
-                <Text>Random Text: {apiQuery.data.random_text}</Text>
-                <Button
-                  disabled={apiQuery.isFetching || apiQuery.isLoading}
-                  onClick={() => apiQuery.refetch()}
-                >
-                  Reload Data
-                </Button>
-              </Stack>
-            )}
-          </Alert>
-        )}
       </Stack>
     </>
   );
